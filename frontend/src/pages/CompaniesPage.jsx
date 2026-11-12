@@ -1,0 +1,24 @@
+import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { api } from '../services/api.js';
+import { Button, Empty, Field, Loading, Notice, PageTitle, Panel } from '../components/PageUI.jsx';
+
+const emptyForm = { nom: '', secteur_activite: '', adresse: '', telephone: '', email: '', site_web: '', description: '' };
+
+export default function CompaniesPage() {
+  const { user } = useAuth(); const canManage = user.role === 'chef_departement';
+  const [page, setPage] = useState(null); const [search, setSearch] = useState(''); const [query, setQuery] = useState('');
+  const [form, setForm] = useState(null); const [editing, setEditing] = useState(null); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [busy, setBusy] = useState(false);
+  const load = useCallback(() => { setError(''); api(`/api/entreprises?per_page=100${query ? `&q=${encodeURIComponent(query)}` : ''}`).then(setPage).catch((e) => setError(e.message)); }, [query]);
+  useEffect(() => { load(); }, [load]);
+  function edit(item = null) { setEditing(item?.id || null); setForm(item ? { ...emptyForm, ...item } : { ...emptyForm }); }
+  async function save(event) { event.preventDefault(); setBusy(true); setError(''); setSuccess(''); try { await api(`/api/entreprises${editing ? `/${editing}` : ''}`, { method: editing ? 'PUT' : 'POST', body: form }); setForm(null); setSuccess('Entreprise enregistrée.'); load(); } catch (e) { setError(e.message); } finally { setBusy(false); } }
+  async function remove(item) { if (!window.confirm(`Supprimer ${item.nom} ?`)) return; setError(''); try { await api(`/api/entreprises/${item.id}`, { method: 'DELETE' }); setSuccess('Entreprise supprimée.'); load(); } catch (e) { setError(e.message); } }
+  function searchSubmit(event) { event.preventDefault(); setQuery(search.trim()); }
+  return <>
+    <PageTitle eyebrow="Réseau professionnel" title="Entreprises" description="Organisations associées aux stages et expériences professionnelles recensés." action={canManage && <Button onClick={() => edit()}>+ Ajouter</Button>} />
+    {error && <div className="mb-4"><Notice>{error}</Notice></div>}{success && <div className="mb-4"><Notice tone="success">{success}</Notice></div>}
+    {form && <Panel className="mb-5 p-5"><form onSubmit={save} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[['nom','Nom'],['secteur_activite','Secteur'],['adresse','Adresse'],['telephone','Téléphone'],['email','E-mail'],['site_web','Site web']].map(([key,label]) => <Field key={key} label={label} required={key==='nom'} type={key==='email'?'email':key==='site_web'?'url':'text'} value={form[key] || ''} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />)}<label className="grid gap-1.5 text-sm font-medium text-slate-700 sm:col-span-2 lg:col-span-3">Description<textarea className="rounded-lg border border-slate-300 px-3 py-2 font-normal" rows="3" value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label><div className="flex gap-2 sm:col-span-2 lg:col-span-3"><Button disabled={busy}>{busy ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer l’entreprise'}</Button><Button variant="secondary" type="button" onClick={() => setForm(null)}>Annuler</Button></div></form></Panel>}
+    <Panel><form onSubmit={searchSubmit} className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row"><Field className="flex-1" label="Rechercher" placeholder="Nom d’entreprise" value={search} onChange={(e) => setSearch(e.target.value)} /><Button className="self-end">Rechercher</Button></form>{!page ? <Loading /> : !page.data?.length ? <Empty>Aucune entreprise ne correspond à cette recherche.</Empty> : <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">{page.data.map((item) => <article key={item.id} className="rounded-xl border border-slate-200 p-5"><div className="flex items-start justify-between gap-3"><div><h2 className="font-semibold text-uasz-950">{item.nom}</h2><p className="mt-1 text-sm text-slate-500">{item.secteur_activite || 'Secteur non renseigné'}</p></div><span className="rounded-full bg-sand-100 px-2.5 py-1 text-xs text-slate-600">{(item.stages_count || 0) + (item.emplois_count || 0)} expérience(s)</span></div><p className="mt-4 text-sm leading-6 text-slate-600">{item.adresse || item.description || 'Aucune information complémentaire.'}</p>{item.site_web && <a className="mt-3 inline-block text-sm font-medium text-uasz-700 hover:underline" href={item.site_web} target="_blank" rel="noreferrer">Visiter le site →</a>}{canManage && <div className="mt-4 flex gap-2"><Button variant="secondary" onClick={() => edit(item)}>Modifier</Button><Button variant="danger" onClick={() => remove(item)}>Supprimer</Button></div>}</article>)}</div>}</Panel>
+  </>;
+}

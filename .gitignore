@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+/vendor/
+/node_modules/
+/frontend/node_modules/
+/frontend/dist/
+/backend/storage/*.key
+/.tools/
+
+# Local runtime data and generated caches
+/backend/database/*.sqlite
+/backend/database/*.sqlite-*
+/backend/.phpunit.result.cache
+/Microsoft/Windows/PowerShell/ModuleAnalysisCache

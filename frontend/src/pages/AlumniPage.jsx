@@ -1,0 +1,36 @@
+import { useCallback, useEffect, useState } from 'react';
+import { api } from '../services/api.js';
+import { Button, Empty, Field, Loading, Notice, PageTitle, Panel, SelectField } from '../components/PageUI.jsx';
+
+export default function AlumniPage() {
+  const [page, setPage] = useState(null);
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [filieres, setFilieres] = useState([]); const [promotions, setPromotions] = useState([]);
+  const [filiereId, setFiliereId] = useState(''); const [promotionId, setPromotionId] = useState('');
+  const [selected, setSelected] = useState(null); const [detailError, setDetailError] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const load = useCallback((url = null) => {
+    setLoading(true); setError('');
+    const params = new URLSearchParams({ per_page: '15' }); if (query) params.set('q', query); if (filiereId) params.set('filiere_id', filiereId); if (promotionId) params.set('promotion_id', promotionId);
+    const path = url ? `${new URL(url, window.location.origin).pathname}${new URL(url, window.location.origin).search}` : `/api/alumni?${params}`;
+    api(path).then(setPage).catch((e) => setError(e.message)).finally(() => setLoading(false));
+  }, [query, filiereId, promotionId]);
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => { api('/api/filieres').then(setFilieres).catch(() => {}); api('/api/promotions').then(setPromotions).catch(() => {}); }, []);
+  function submit(event) { event.preventDefault(); setQuery(search.trim()); }
+  async function viewProfile(id) { setSelected(null); setDetailError(''); try { const response = await api(`/api/alumni/${id}`); setSelected(response.data); } catch (reason) { setDetailError(reason.message); } }
+  return <>
+    <PageTitle eyebrow="Annuaire" title="Alumni" description="Consultez les profils visibles dans le périmètre autorisé à votre compte." />
+    <Panel className="mb-5 p-4"><form onSubmit={submit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><Field className="lg:col-span-2" label="Rechercher un alumni" placeholder="Nom, prénom ou e-mail" value={search} onChange={(e) => setSearch(e.target.value)} /><SelectField label="Filière" value={filiereId} onChange={(e) => setFiliereId(e.target.value)}><option value="">Toutes les filières accessibles</option>{filieres.map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}</SelectField><SelectField label="Promotion" value={promotionId} onChange={(e) => setPromotionId(e.target.value)}><option value="">Toutes les promotions accessibles</option>{promotions.map((p) => <option key={p.id} value={p.id}>{p.annee} · {p.filiere?.nom}</option>)}</SelectField><div className="sm:col-span-2 lg:col-span-4"><Button type="submit">Rechercher</Button></div></form></Panel>
+    {error && <div className="mb-5"><Notice>{error}</Notice></div>}
+    <Panel>{loading ? <Loading /> : !page?.data?.length ? <Empty>Aucun profil trouvé dans ce périmètre.</Empty> : <>
+      <div className="hidden overflow-x-auto md:block"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-3">Alumni</th><th className="px-5 py-3">Filière</th><th className="px-5 py-3">Promotion</th><th className="px-5 py-3">Parcours</th><th className="px-5 py-3">Profil</th></tr></thead><tbody className="divide-y divide-slate-100">{page.data.map((item) => <tr key={item.id} className="hover:bg-sand-50/70"><td className="px-5 py-4"><p className="font-semibold text-slate-800">{item.user?.prenom} {item.user?.nom}</p><p className="mt-1 text-xs text-slate-500">{item.user?.email}</p></td><td className="px-5 py-4 text-slate-600">{item.filiere?.nom || '—'}</td><td className="px-5 py-4 text-slate-600">{item.promotion?.annee || '—'}</td><td className="px-5 py-4 text-slate-600">{item.emplois_count || 0} emploi(s) · {item.stages_count || 0} stage(s)</td><td className="px-5 py-4"><Button variant="secondary" onClick={() => viewProfile(item.id)}>Détails</Button></td></tr>)}</tbody></table></div>
+      <div className="grid gap-3 p-4 md:hidden">{page.data.map((item) => <article key={item.id} className="rounded-xl border border-slate-200 p-4"><p className="font-semibold text-slate-800">{item.user?.prenom} {item.user?.nom}</p><p className="mt-1 text-xs text-slate-500">{item.user?.email}</p><p className="mt-3 text-sm text-slate-600">{item.filiere?.nom || 'Filière non renseignée'} · promotion {item.promotion?.annee || '—'}</p><Button className="mt-3" variant="secondary" onClick={() => viewProfile(item.id)}>Voir le profil</Button></article>)}</div>
+      <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between"><span>{page.total} profil(s) · page {page.current_page} sur {page.last_page}</span><div className="flex gap-2"><Button variant="secondary" disabled={!page.prev_page_url || loading} onClick={() => load(page.prev_page_url)}>Précédent</Button><Button variant="secondary" disabled={!page.next_page_url || loading} onClick={() => load(page.next_page_url)}>Suivant</Button></div></div>
+    </>}</Panel>
+    {detailError && <div className="mt-4"><Notice>{detailError}</Notice></div>}
+    {selected && <div className="fixed inset-0 z-40 grid place-items-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><Panel className="w-full max-w-xl p-6" role="dialog" aria-modal="true" aria-labelledby="alumni-profile-title"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-uasz-700">Profil alumni</p><h2 id="alumni-profile-title" className="mt-2 text-xl font-semibold text-uasz-950">{selected.user?.prenom} {selected.user?.nom}</h2></div><button className="rounded-lg px-3 py-1 text-slate-500 hover:bg-slate-100" onClick={() => setSelected(null)} aria-label="Fermer le profil">×</button></div><dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-slate-500">E-mail</dt><dd className="mt-1 font-medium">{selected.user?.email || '—'}</dd></div><div><dt className="text-slate-500">Téléphone</dt><dd className="mt-1 font-medium">{selected.telephone || '—'}</dd></div><div><dt className="text-slate-500">Filière</dt><dd className="mt-1 font-medium">{selected.filiere?.nom || '—'}</dd></div><div><dt className="text-slate-500">Promotion</dt><dd className="mt-1 font-medium">{selected.promotion?.annee || '—'}</dd></div><div><dt className="text-slate-500">Diplôme</dt><dd className="mt-1 font-medium">{selected.diplome?.intitule || '—'}</dd></div><div><dt className="text-slate-500">Localisation</dt><dd className="mt-1 font-medium">{selected.adresse || '—'}</dd></div><div><dt className="text-slate-500">Années de formation</dt><dd className="mt-1 font-medium">{selected.annee_entree || '—'} – {selected.annee_sortie || '—'}</dd></div><div><dt className="text-slate-500">Expériences recensées</dt><dd className="mt-1 font-medium">{selected.stages_count || 0} stage(s) · {selected.emplois_count || 0} emploi(s)</dd></div></dl></Panel></div>}
+  </>;
+}
