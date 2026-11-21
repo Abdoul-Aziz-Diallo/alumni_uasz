@@ -36,9 +36,20 @@ class AuthTest extends TestCase
             ->assertUnprocessable();
     }
 
-    public function test_roles_outside_the_four_functional_profiles_cannot_login(): void
+    public function test_teacher_can_login(): void
     {
-        $legacyAccount = User::factory()->create(['role' => 'enseignant', 'statut' => 'actif']);
+        $teacher = User::factory()->create(['role' => 'enseignant', 'statut' => 'actif']);
+
+        $this->withHeader('Origin', 'http://127.0.0.1:5173')
+            ->postJson('/api/auth/login', ['email' => $teacher->email, 'password' => 'Password!2026'])
+            ->assertOk()
+            ->assertJsonPath('data.role', 'enseignant')
+            ->assertJsonPath('data.id', $teacher->id);
+    }
+
+    public function test_roles_outside_the_supported_profiles_cannot_login(): void
+    {
+        $legacyAccount = User::factory()->create(['role' => 'ancien_agent', 'statut' => 'actif']);
 
         $this->withHeader('Origin', 'http://127.0.0.1:5173')
             ->postJson('/api/auth/login', ['email' => $legacyAccount->email, 'password' => 'Password!2026'])

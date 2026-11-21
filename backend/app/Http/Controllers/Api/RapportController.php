@@ -42,7 +42,10 @@ class RapportController extends Controller
         abort_if($alumni->isEmpty(), 404, 'Aucune donnée ne correspond aux filtres.');
 
         $metadata = ['filiere_id' => $data['filiere_id'] ?? null, 'promotion_id' => $data['promotion_id'] ?? null, 'annee' => $data['annee'] ?? null, 'lignes' => $alumni->count()];
-        Rapport::create(['type' => $data['format'], 'metadata' => $metadata, 'genere_par' => $user->id, 'is_demo' => $user->is_demo]);
+        $rapport = Rapport::create(['type' => $data['format'], 'metadata' => $metadata, 'genere_par' => $user->id, 'is_demo' => $user->is_demo]);
+        if ($user->role === 'responsable_filiere') {
+            $user->responsableFiliere?->rapportsExportes()->attach($rapport->id);
+        }
 
         if ($data['format'] === 'xlsx') return Excel::download(new AlumniExport($alumni), 'rapport_alumni.xlsx');
         return Pdf::loadView('reports.alumni', ['alumni' => $alumni, 'generatedAt' => now()])->setPaper('a4', 'landscape')->download('rapport_alumni.pdf');

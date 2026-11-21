@@ -19,6 +19,10 @@ class UserResource extends JsonResource
             'statut' => $this->statut,
             'is_demo' => (bool) $this->is_demo,
             'alumni' => $this->whenLoaded('alumni', fn () => $this->alumni),
+            'enseignant' => $this->whenLoaded('enseignant', fn () => $this->enseignant),
+            'coordinateur_master' => $this->whenLoaded('coordinateurMaster', fn () => $this->coordinateurMaster),
+            'responsable_filiere' => $this->whenLoaded('responsableFiliere', fn () => $this->responsableFiliere),
+            'chef_departement' => $this->whenLoaded('chefDepartement', fn () => $this->chefDepartement),
             'filieres' => $this->whenLoaded('filieres', fn () => $this->filieres->map(fn ($filiere) => ['id' => $filiere->id, 'nom' => $filiere->nom])),
         ];
     }

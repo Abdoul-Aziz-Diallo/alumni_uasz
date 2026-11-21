@@ -27,11 +27,11 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen bg-sand-50 md:grid-cols-2">
+    <main className="grid min-h-screen bg-uasz-50 md:grid-cols-2">
       <section className="hidden bg-uasz-950 p-12 text-white md:flex md:flex-col md:justify-between lg:p-16">
         <Link to="/" className="font-semibold tracking-wide">UASZ ALUMNI</Link>
         <div className="max-w-lg pb-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">Département Informatique</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-uasz-200">Département Informatique</p>
           <h1 className="mt-5 text-4xl font-bold leading-tight">La communauté UASZ vous accompagne.</h1>
           <p className="mt-5 leading-7 text-white/70">Connectez-vous pour retrouver votre espace alumni et votre parcours.</p>
         </div>
@@ -51,7 +51,7 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-slate-700">Mot de passe
               <input className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-uasz-700 focus:ring-2 focus:ring-uasz-700/20" type="password" name="password" autoComplete="current-password" required />
             </label>
-            <button className="w-full rounded-xl bg-uasz-900 px-5 py-3 font-semibold text-white transition hover:bg-uasz-700 focus:outline-none focus:ring-2 focus:ring-uasz-700 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60" disabled={busy}>
+            <button className="w-full rounded-xl bg-uasz-500 px-5 py-3 font-semibold text-uasz-950 transition hover:bg-uasz-600 focus:outline-none focus:ring-2 focus:ring-uasz-700 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60" disabled={busy}>
               {busy ? 'Connexion…' : 'Se connecter'}
             </button>
           </form>

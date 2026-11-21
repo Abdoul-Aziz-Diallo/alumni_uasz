@@ -26,6 +26,7 @@ class AlumniResource extends JsonResource
             'filiere' => $this->whenLoaded('filiere'),
             'promotion' => $this->whenLoaded('promotion'),
             'diplome' => $this->whenLoaded('diplome'),
+            'chef_departement' => $this->whenLoaded('chefDepartement', fn () => $this->chefDepartement?->user ? ['id' => $this->chefDepartement->user->id, 'nom' => $this->chefDepartement->user->nom, 'prenom' => $this->chefDepartement->user->prenom] : null),
             'stages_count' => $this->whenCounted('stages'),
             'emplois_count' => $this->whenCounted('emplois'),
         ];

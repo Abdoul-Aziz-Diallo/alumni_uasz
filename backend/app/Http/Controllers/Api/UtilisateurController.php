@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SaveUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Alumni;
+use App\Models\ChefDepartement;
+use App\Models\CoordinateurMaster;
+use App\Models\Enseignant;
+use App\Models\ResponsableFiliere;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +19,7 @@ class UtilisateurController extends Controller
     public function index(Request $request)
     {
         abort_unless($request->user()->isRole('chef_departement'), 403);
-        $query = User::query()->whereIn('role', User::ROLES)->where('is_demo', $request->user()->is_demo)->with(['alumni', 'filieres'])->orderBy('nom')->orderBy('prenom');
+        $query = User::query()->whereIn('role', User::ROLES)->where('is_demo', $request->user()->is_demo)->with(['alumni', 'enseignant.filiere', 'filieres', 'coordinateurMaster', 'responsableFiliere', 'chefDepartement'])->orderBy('nom')->orderBy('prenom');
         if ($request->filled('q')) {
             $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $request->string('q')->trim()).'%';
             $query->where(fn ($builder) => $builder->where('nom', 'like', $term)->orWhere('prenom', 'like', $term)->orWhere('email', 'like', $term));
@@ -33,7 +37,7 @@ class UtilisateurController extends Controller
             $this->syncRelatedProfiles($user, $data);
             return $user;
         });
-        return (new UserResource($user->load(['alumni', 'filieres'])))->response()->setStatusCode(201);
+        return (new UserResource($user->load(['alumni', 'enseignant.filiere', 'filieres', 'coordinateurMaster', 'responsableFiliere', 'chefDepartement'])))->response()->setStatusCode(201);
     }
 
     public function update(SaveUserRequest $request, User $utilisateur)
@@ -43,7 +47,7 @@ class UtilisateurController extends Controller
             $utilisateur->update($this->attributes($data, partial: true));
             $this->syncRelatedProfiles($utilisateur, $data);
         });
-        return new UserResource($utilisateur->fresh()->load(['alumni', 'filieres']));
+        return new UserResource($utilisateur->fresh()->load(['alumni', 'enseignant.filiere', 'filieres', 'coordinateurMaster', 'responsableFiliere', 'chefDepartement']));
     }
 
     private function attributes(array $data, bool $partial = false): array
@@ -66,6 +70,15 @@ class UtilisateurController extends Controller
         }
         if ($user->role === 'alumni') {
             Alumni::firstOrCreate(['user_id' => $user->id], ['filiere_id' => $data['filiere_id'] ?? null, 'is_demo' => $user->is_demo]);
+        }
+        if ($user->role === 'enseignant') {
+            Enseignant::updateOrCreate(['user_id' => $user->id], array_intersect_key($data, array_flip(['identifiant_professionnel', 'grade_academique', 'domaine_enseignement', 'filiere_id', 'coordonnees', 'date_prise_fonction'])) + ['is_demo' => $user->is_demo]);
+        } elseif ($user->role === 'coordinateur_master') {
+            CoordinateurMaster::updateOrCreate(['user_id' => $user->id], array_intersect_key($data, array_flip(['filiere_master_rattachee', 'date_debut_mandat', 'date_fin_mandat'])));
+        } elseif ($user->role === 'responsable_filiere') {
+            ResponsableFiliere::updateOrCreate(['user_id' => $user->id], array_intersect_key($data, array_flip(['perimetre_supervision', 'date_debut_mandat', 'date_fin_mandat'])));
+        } elseif ($user->role === 'chef_departement') {
+            ChefDepartement::updateOrCreate(['user_id' => $user->id], array_intersect_key($data, array_flip(['date_debut_mandat', 'date_fin_mandat', 'niveau_droits_admin'])));
         }
     }
 }

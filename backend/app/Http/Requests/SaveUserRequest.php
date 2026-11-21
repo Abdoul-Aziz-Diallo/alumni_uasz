@@ -25,6 +25,16 @@ class SaveUserRequest extends FormRequest
             'role' => ['required', Rule::in(User::ROLES)],
             'statut' => ['sometimes', Rule::in(['actif', 'desactive'])],
             'filiere_id' => ['sometimes', 'nullable', 'integer', 'exists:filieres,id'],
+            'identifiant_professionnel' => ['sometimes', 'nullable', 'string', 'max:80', Rule::unique('enseignants', 'identifiant_professionnel')->ignore($user?->enseignant?->id)],
+            'grade_academique' => ['sometimes', 'nullable', 'string', 'max:80'],
+            'domaine_enseignement' => ['sometimes', 'nullable', 'string', 'max:150'],
+            'coordonnees' => ['sometimes', 'nullable', 'string', 'max:180'],
+            'date_prise_fonction' => ['sometimes', 'nullable', 'date'],
+            'filiere_master_rattachee' => ['sometimes', 'nullable', 'integer', 'exists:filieres,id'],
+            'date_debut_mandat' => ['sometimes', 'nullable', 'date'],
+            'date_fin_mandat' => ['sometimes', 'nullable', 'date', 'after_or_equal:date_debut_mandat'],
+            'perimetre_supervision' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'niveau_droits_admin' => ['sometimes', 'nullable', 'string', 'max:80'],
         ];
     }
 }

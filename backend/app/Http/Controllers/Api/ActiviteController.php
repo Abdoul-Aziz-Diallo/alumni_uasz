@@ -19,6 +19,9 @@ class ActiviteController extends Controller
             if ($user->role === 'alumni' && $user->alumni?->filiere_id) {
                 $filiereIds->union(\App\Models\Filiere::query()->select('id')->whereKey($user->alumni->filiere_id));
             }
+            if ($user->role === 'enseignant' && $user->enseignant?->filiere_id) {
+                $filiereIds->union(\App\Models\Filiere::query()->select('id')->whereKey($user->enseignant->filiere_id));
+            }
             $query->where(function ($builder) use ($filiereIds) {
                 $builder->whereNull('filiere_id')->orWhereIn('filiere_id', $filiereIds);
             });

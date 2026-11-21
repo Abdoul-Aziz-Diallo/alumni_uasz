@@ -15,7 +15,7 @@ class AlumniController extends Controller
     {
         Gate::authorize('viewAny', Alumni::class);
         $user = $request->user();
-        $query = Alumni::query()->with(['user', 'filiere', 'promotion', 'diplome'])->withCount(['stages', 'emplois']);
+        $query = Alumni::query()->with(['user', 'filiere', 'promotion', 'diplome', 'chefDepartement.user'])->withCount(['stages', 'emplois']);
         $query->where('is_demo', $user->is_demo);
 
         if (! $user->isRole('chef_departement')) {
@@ -34,7 +34,7 @@ class AlumniController extends Controller
     public function show(Alumni $alumni): AlumniResource
     {
         Gate::authorize('view', $alumni);
-        return new AlumniResource($alumni->load(['user', 'filiere', 'promotion', 'diplome'])->loadCount(['stages', 'emplois']));
+        return new AlumniResource($alumni->load(['user', 'filiere', 'promotion', 'diplome', 'chefDepartement.user'])->loadCount(['stages', 'emplois']));
     }
 
     public function update(UpdateAlumniRequest $request, Alumni $alumni): AlumniResource
@@ -44,6 +44,6 @@ class AlumniController extends Controller
             abort_unless($alumni->filiere_id === (int) $data['filiere_id'], 422, 'La promotion doit correspondre à la filière de l’alumni.');
         }
         $alumni->fill($data)->save();
-        return new AlumniResource($alumni->fresh()->load(['user', 'filiere', 'promotion', 'diplome']));
+        return new AlumniResource($alumni->fresh()->load(['user', 'filiere', 'promotion', 'diplome', 'chefDepartement.user']));
     }
 }

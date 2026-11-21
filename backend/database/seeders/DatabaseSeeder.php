@@ -12,6 +12,6 @@ class DatabaseSeeder extends Seeder
             throw new \RuntimeException('Demo data seeding is only allowed in local or testing environments.');
         }
 
-        $this->call(DemoSeeder::class);
+        $this->call([FiliereSeeder::class, DemoSeeder::class]);
     }
 }

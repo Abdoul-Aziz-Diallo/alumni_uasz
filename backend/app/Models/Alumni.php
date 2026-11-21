@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Alumni extends Model
 {
     protected $table = 'alumni';
-    protected $fillable = ['user_id', 'telephone', 'adresse', 'annee_entree', 'annee_sortie', 'filiere_id', 'promotion_id', 'diplome_id', 'is_demo'];
+    protected $fillable = ['user_id', 'chef_departement_id', 'telephone', 'adresse', 'annee_entree', 'annee_sortie', 'filiere_id', 'promotion_id', 'diplome_id', 'is_demo'];
     protected function casts(): array { return ['is_demo' => 'boolean']; }
     public function user() { return $this->belongsTo(User::class); }
+    public function chefDepartement() { return $this->belongsTo(ChefDepartement::class, 'chef_departement_id', 'user_id'); }
     public function filiere() { return $this->belongsTo(Filiere::class); }
     public function promotion() { return $this->belongsTo(Promotion::class); }
     public function diplome() { return $this->belongsTo(Diplome::class); }

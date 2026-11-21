@@ -33,7 +33,7 @@ export default function RegisterPage() {
     } catch (reason) { setError(reason.message); } finally { setBusy(false); }
   }
 
-  return <main className="min-h-screen bg-sand-50 px-4 py-8 sm:px-6 sm:py-12">
+  return <main className="min-h-screen bg-uasz-50 px-4 py-8 sm:px-6 sm:py-12">
     <div className="mx-auto max-w-3xl">
       <Link to="/" className="inline-flex items-center gap-3"><img src="/uasz-logo.png" alt="" className="h-10 w-10 object-contain" /><span className="text-sm font-bold tracking-[0.12em] text-uasz-950">ALUMNI UASZ</span></Link>
       <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">

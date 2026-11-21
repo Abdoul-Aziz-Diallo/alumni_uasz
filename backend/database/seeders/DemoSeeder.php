@@ -30,8 +30,8 @@ class DemoSeeder extends Seeder
             throw new RuntimeException('Set a local DEMO_USER_PASSWORD of at least 12 characters in backend/.env before seeding.');
         }
 
-        $licence = Filiere::firstOrCreate(['code' => 'LIC-INFO'], ['nom' => 'Licence Informatique', 'active' => true, 'is_demo' => true]);
-        $master = Filiere::firstOrCreate(['code' => 'MST-INFO'], ['nom' => 'Master Informatique', 'active' => true, 'is_demo' => true]);
+        $licence = Filiere::firstOrCreate(['code' => 'LIC-INFO', 'is_demo' => true], ['nom' => 'Licence Informatique', 'active' => true]);
+        $master = Filiere::firstOrCreate(['code' => 'MST-INFO', 'is_demo' => true], ['nom' => 'Master Informatique', 'active' => true]);
         $promoLicence = Promotion::firstOrCreate(['code' => 'LIC-INFO-2022'], ['annee' => 2022, 'filiere_id' => $licence->id, 'is_demo' => true]);
         $promoMaster = Promotion::firstOrCreate(['code' => 'MST-INFO-2024'], ['annee' => 2024, 'filiere_id' => $master->id, 'is_demo' => true]);
         $diplomeLicence = Diplome::firstOrCreate(['intitule' => 'Licence en Informatique', 'annee_obtention' => 2022], ['is_demo' => true]);

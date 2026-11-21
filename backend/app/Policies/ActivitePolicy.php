@@ -16,6 +16,9 @@ class ActivitePolicy
         if ($user->isRole('coordinateur_master', 'responsable_filiere')) {
             return $activite->filiere_id === null || $user->filieres()->whereKey($activite->filiere_id)->exists();
         }
+        if ($user->role === 'enseignant') {
+            return $activite->filiere_id === null || $user->enseignant?->filiere_id === $activite->filiere_id;
+        }
         return $user->role === 'alumni';
     }
 

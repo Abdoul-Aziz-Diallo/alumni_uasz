@@ -40,7 +40,7 @@ class AuthController extends Controller
             return $user;
         });
 
-        return new UserResource($user->load('alumni'));
+        return new UserResource($user->load(['alumni', 'enseignant.filiere']));
     }
 
     public function login(LoginRequest $request): UserResource
@@ -69,7 +69,7 @@ class AuthController extends Controller
     public function me(Request $request): UserResource
     {
         abort_unless(in_array($request->user()->role, User::ROLES, true) && $request->user()->statut === 'actif', 403);
-        return new UserResource($request->user()->load('alumni'));
+        return new UserResource($request->user()->load(['alumni', 'enseignant.filiere']));
     }
 
     public function logout(Request $request)
